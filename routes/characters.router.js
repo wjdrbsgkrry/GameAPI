@@ -15,21 +15,19 @@ router.get('/items', async (req, res) => {
   return res.status(201).json({ itemLister });
 });
 
-/** 캐릭터 생성 **/
 router.post('/characterCreate', async (req, res) => {
-  let { name, status, count, _id } = await req.body;
+  let { name, status, count, _id, item = null } = await req.body;
 
   const isCount = await characterModel.findOne().sort('-count').exec();
 
   count = (await isCount) !== null ? isCount.count + 1 : 1;
   characterLister.push({ name, status, count, _id });
-  const newCharacter = new characterModel({ name, status, count, _id });
+  const newCharacter = new characterModel({ name, status, count, _id, item });
   newCharacter.save();
 
   return res.status(201).json({ newCharacter });
 });
 
-/** 캐릭터 삭제 **/
 router.delete('/characterDelete/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -46,7 +44,6 @@ router.delete('/characterDelete/:id', async (req, res) => {
   return res.status(200).json({});
 });
 
-/** 캐릭터 조회 **/
 router.get('/characterFind/:id', async (req, res) => {
   const { id } = req.params;
   const character = await characterModel.findById(id).select('-_id').exec();
@@ -58,7 +55,6 @@ router.get('/characterFind/:id', async (req, res) => {
   return res.status(200).json({ character });
 });
 
-/** 아이템 생성 **/
 router.post('/itemCreate', async (req, res) => {
   let { code, name, status, _id } = await req.body;
 
@@ -73,7 +69,6 @@ router.post('/itemCreate', async (req, res) => {
   return res.status(201).json({ newItem });
 });
 
-/** 아이템 조회 **/
 router.get('/itemFind/:id', async (req, res) => {
   const { id } = req.params;
   const item = await itemModel.findById(id).select('-_id').exec();
@@ -88,7 +83,6 @@ router.get('/itemFind/:id', async (req, res) => {
   return res.status(200).json({ item });
 });
 
-/** 아이템 수정 **/
 router.patch('/itemPatch/:id', async (req, res) => {
   const { id } = req.params;
   const { name, status, code } = req.body;
@@ -114,7 +108,6 @@ router.patch('/itemPatch/:id', async (req, res) => {
   }
 });
 
-/** 모든 아이템 조회 **/
 router.get('/itemAllFind', async (req, res) => {
   try {
     const items = await itemModel.find();
@@ -124,6 +117,70 @@ router.get('/itemAllFind', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'database failure' });
   }
+});
+
+router.patch('/characterItemEquip/:itemId/:characterId', async (req, res) => {
+  const { itemId, characterId } = req.params;
+  const item = await itemModel.findById(itemId).exec();
+  const character = await characterModel.findById(characterId).exec();
+
+  if (!character || !item) {
+    return res.status(404).json({
+      errorMessage: '캐릭터 id 또는 아이템 id가 올바르지 않습니다.',
+    });
+  }
+
+  if (character.item) {
+    return res
+      .status(404)
+      .json({ errorMessage: '이미 장착중인 아이템이 있습니다.' });
+  }
+
+  character.item = item;
+  character.status += item.status;
+  character.save();
+  return res.status(200).json({ character });
+});
+
+router.patch(
+  '/characterItemUnequipped/:itemId/:characterId',
+  async (req, res) => {
+    const { itemId, characterId } = req.params;
+    const item = await itemModel.findById(itemId).exec();
+    const character = await characterModel.findById(characterId).exec();
+
+    if (!character || !item) {
+      return res.status(404).json({
+        errorMessage: '캐릭터 id 또는 아이템 id가 올바르지 않습니다.',
+      });
+    }
+
+    if (!character.item) {
+      return res.status(404).json({
+        errorMessage: '장착중인 아이템이 없습니다.',
+      });
+    }
+
+    character.item = null;
+    character.status -= item.status;
+    character.save();
+    return res.status(200).json({ character });
+  }
+);
+
+router.get('/characterItemWatch/:characterId', async (req, res) => {
+  const { characterId } = req.params;
+  const character = await characterModel.findById(characterId).exec();
+  if (!character || !character.item) {
+    return res
+      .status(404)
+      .json({ errorMessage: '캐릭터 id 또는 장착된 아이템이 없습니다.' });
+  }
+  const item = await itemModel
+    .findById(character.item._id)
+    .select('-_id')
+    .exec();
+  return res.status(200).json(item);
 });
 
 export default router;

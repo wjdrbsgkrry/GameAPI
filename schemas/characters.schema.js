@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { model } from 'mongoose';
 
 const character = new mongoose.Schema(
   {
@@ -16,6 +16,10 @@ const character = new mongoose.Schema(
       type: Number,
       required: true,
       unique: true,
+    },
+    item: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Item',
     },
   },
   { versionKey: false }
