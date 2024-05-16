@@ -61,7 +61,7 @@ router.post('/itemCreate', async (req, res) => {
   
   router.get('/itemAllFind', async (req, res) => {
     try {
-      const items = await itemModel.find();
+      const items = await itemModel.find().exec();
       return res.status(200).json({ items });
     } catch (err) {
       return res.status(500).json({ error: 'database failure' });
