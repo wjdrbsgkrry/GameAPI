@@ -67,3 +67,5 @@ router.post('/itemCreate', async (req, res) => {
       return res.status(500).json({ error: 'database failure' });
     }
   });
+
+  export default router;
