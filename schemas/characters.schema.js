@@ -19,7 +19,7 @@ const character = new mongoose.Schema(
     },
     item: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Item',
+      ref: 'item',
     },
   },
   { versionKey: false }

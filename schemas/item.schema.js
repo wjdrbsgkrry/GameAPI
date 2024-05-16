@@ -16,10 +16,6 @@ const item = mongoose.Schema(
       type: Number,
       unique: false,
     },
-    item: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Item',
-    },
   },
   { versionKey: false }
 );
