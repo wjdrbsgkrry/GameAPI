@@ -9,7 +9,7 @@ const character = new mongoose.Schema(
     },
     status: {
       type: Number,
-      required: false,
+      default: 500,
       unique: false,
     },
     count: {
@@ -17,10 +17,12 @@ const character = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    item: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'item',
-    },
+    item: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'item',
+      },
+    ],
   },
   { versionKey: false }
 );
